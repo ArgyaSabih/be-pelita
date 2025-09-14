@@ -4,7 +4,7 @@ const Announcement = require("../models/Announcement");
 const getAllAnnouncements = async (req, res) => {
     try{
         const announcement = await Announcement.find()
-            .sort({dataSent: -1});
+            .sort({dateSent: -1});
 
         res.status(200).json({
             success: true,
