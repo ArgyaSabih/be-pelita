@@ -5,6 +5,9 @@ const connectDB = require("./config/connectDBConfig");
 const PORT = 8000;
 const app = express();
 
+// Body parser
+app.use(express.json());
+
 // Connect Database
 connectDB();
 
@@ -20,7 +23,8 @@ app.use(
   })
 );
 
-// Route
+// Routes
+app.use("/api/schedules", require("./routes/ScheduleRoutes"));
 // app.use("/user", require("./routes/UserRoutes"));
 
 // Server run
