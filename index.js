@@ -5,6 +5,13 @@ const connectDB = require("./config/connectDBConfig");
 const PORT = 8000;
 const app = express();
 
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true
+  })
+);
+
 // Body parser
 app.use(express.json());
 
@@ -16,16 +23,9 @@ app.get("/", (req, res) => {
   res.send("PAW 15 Back-End");
 });
 
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true
-  })
-);
-
 // Routes
 app.use("/api/schedules", require("./routes/ScheduleRoutes"));
-// app.use("/user", require("./routes/UserRoutes"));
+app.use("/api/users", require("./routes/UserRoutes"));
 
 // Server run
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
