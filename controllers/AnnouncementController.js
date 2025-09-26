@@ -129,7 +129,7 @@ const deleteAnnouncement = async (req, res) => {
     try {
         const {id} = req.params;
 
-        const deleteAnnouncement = await Announcement.findByIdAndDelete(id);
+        const deletedAnnouncement = await Announcement.findByIdAndDelete(id);
 
         if (!deletedAnnouncement){
             return res.status(404).json({
