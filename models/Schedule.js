@@ -5,9 +5,9 @@ const scheduleSchema = new mongoose.Schema(
     day: {type: String, enum: ["Senin", "Selasa", "Rabu"], required: true},
     activity: [
       {
-        time: String,
-        subject: String,
-        teacher: String
+        time: {type: String, required: true},
+        subject: {type: String, required: true},
+        teacher: {type: String, required: true}
       }
     ]
   },
