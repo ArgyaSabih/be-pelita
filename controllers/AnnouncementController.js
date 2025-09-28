@@ -55,7 +55,7 @@ const createAnnouncement = async (req, res) => {
 
         // validasi input
         if (!title || !content){
-            return req.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: "Title and content are required"
             });
