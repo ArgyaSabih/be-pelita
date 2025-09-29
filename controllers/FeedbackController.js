@@ -65,7 +65,7 @@ const createFeedback = async (req, res) => {
     if (!content || !type) {
       return res.status(400).json({
         success: false,
-        message: "Content and type are required",
+        message: "Content, and type are required",
       });
     }
 
