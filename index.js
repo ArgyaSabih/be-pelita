@@ -26,6 +26,7 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/api/schedules", require("./routes/ScheduleRoutes"));
 app.use("/api/users", require("./routes/UserRoutes"));
+app.use("/api/announcements", require("./routes/AnnouncementRoutes"));
 app.use("/api/feedbacks", require("./routes/FeedbackRoutes"));
 
 // Server run
