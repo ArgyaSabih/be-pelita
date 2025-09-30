@@ -64,4 +64,4 @@ be-pelita/
 - **API Testing**: Postman
 
 ## Google Drive URL
-https://drive.google.com/drive/folders/1nfgsRv8AN8AGNuo30J47-5nqW_Epkkpl?usp=sharing 
+https://drive.google.com/drive/folders/1nfgsRv8AN8AGNuo30J47-5nqW_Epkkpl
