@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Child = require("../models/Child");
-const { generateAuthToken } = require("../utils/JWT");
+const { generateTempToken, generateAuthToken } = require('../utils/JWT');
 
 // @desc    Register user
 // @route   POST /api/users/register
@@ -83,7 +84,6 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Input validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -91,7 +91,6 @@ const login = async (req, res) => {
       });
     }
 
-    // Find user and include password field (normally excluded)
     const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
@@ -101,7 +100,6 @@ const login = async (req, res) => {
       });
     }
 
-    // Check password
     const isPasswordValid = await user.matchPassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -110,15 +108,13 @@ const login = async (req, res) => {
       });
     }
 
-    // Generate JWT token
     const token = generateAuthToken(user._id);
 
-    // Send response
     res.status(200).json({
       success: true,
       message: "Login berhasil",
       data: {
-        user: user.toJSON(), // This will exclude password
+        user: user.toJSON(),
         token
       }
     });
@@ -132,15 +128,107 @@ const login = async (req, res) => {
   }
 };
 
+// Controller untuk /google/callback
+const googleCallback = async (req, res) => {
+  const userOrProfile = req.user;
+
+  // Check existing profile
+  if (userOrProfile._id) {
+    // Existing user: log in directly
+    const token = generateAuthToken(userOrProfile._id);
+    return res.redirect(`http://localhost:3000/dashboard?token=${token}`);
+  } else {
+    // New user: create temporary token and redirect to data completion page
+    const tempToken = generateTempToken(userOrProfile);
+    return res.redirect(`http://localhost:3000/register/complete?token=${tempToken}`);
+  }
+};
+
+// Controller untuk /google/registration
+const googleRegistration = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { tempToken, childCode } = req.body;
+
+    if (!tempToken || !childCode) {
+      return res.status(400).json({ message: 'Token sementara dan kode anak wajib diisi' });
+    }
+
+    const googleProfile = jwt.verify(tempToken, process.env.JWT_SECRET);
+    
+    const child = await Child.findOne({ invitationCode: childCode }).session(session);
+    if (!child) {
+      return res.status(400).json({ success: false, message: "Kode anak tidak valid" });
+    }
+
+    const newUser = new User({
+      name: googleProfile.name,
+      email: googleProfile.email,
+      googleId: googleProfile.googleId,
+    });
+    
+    newUser.children.push(child._id);
+    child.parents.push(newUser._id);
+    
+    await newUser.save({ session });
+    await child.save({ session });
+
+    await session.commitTransaction();
+
+    // Create actual authentication token
+    const finalToken = generateAuthToken(newUser._id);
+    res.status(201).json({
+      success: true,
+      message: 'Registrasi Google berhasil diselesaikan',
+      data: { user: newUser.toJSON(), token: finalToken },
+    });
+
+  } catch (error) {
+    await session.abortTransaction();
+    
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Token sementara tidak valid atau kedaluwarsa' 
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Data tidak valid",
+        errors
+      });
+    }
+    
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "Email sudah terdaftar"
+      });
+    }
+    
+    console.error('Google registration error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Terjadi kesalahan server', 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
 const getProfile = async (req, res) => {
   try {
-    // Use the user data that's already loaded from auth middleware
     let user = req.user;
 
-    // Only populate children if needed and not already populated
     if (user.children && user.children.length > 0 && typeof user.children[0] === 'string') {
       user = await user.populate('children');
     }
@@ -168,14 +256,13 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { name, phoneNumber } = req.body;
-    const userId = req.user._id; // Use _id instead of id for consistency
+    const userId = req.user._id;
 
     // Build update object (only include provided fields)
     const updateFields = {};
     if (name) updateFields.name = name;
     if (phoneNumber) updateFields.phoneNumber = phoneNumber;
 
-    // If no fields to update
     if (Object.keys(updateFields).length === 0) {
       return res.status(400).json({
         success: false,
@@ -183,7 +270,6 @@ const updateProfile = async (req, res) => {
       });
     }
 
-    // Update user
     const user = await User.findByIdAndUpdate(
       userId,
       updateFields,
@@ -209,7 +295,6 @@ const updateProfile = async (req, res) => {
     });
 
   } catch (error) {
-    // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
@@ -230,6 +315,8 @@ const updateProfile = async (req, res) => {
 module.exports = {
   register,
   login,
+  googleCallback,
+  googleRegistration,
   getProfile,
   updateProfile
 };

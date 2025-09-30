@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const passport = require('passport');
+require('./config/passport')(passport);
 const connectDB = require("./config/connectDBConfig");
 const PORT = 8000;
 const app = express();
@@ -14,6 +16,8 @@ app.use(
 
 // Body parser
 app.use(express.json());
+
+app.use(passport.initialize());
 
 // Connect Database
 connectDB();
@@ -29,6 +33,7 @@ app.use("/api/users", require("./routes/UserRoutes"));
 app.use("/api/announcements", require("./routes/AnnouncementRoutes"));
 app.use("/api/feedbacks", require("./routes/FeedbackRoutes"));
 app.use("/api/permission-letters", require("./routes/PermissionLetterRoutes"));
+app.use("/api/auth", require("./routes/AuthRoutes"));
 
 // Server run
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
