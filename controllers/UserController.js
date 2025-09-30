@@ -255,13 +255,14 @@ const getProfile = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const { name, phoneNumber } = req.body;
+    const { name, phoneNumber, address } = req.body;
     const userId = req.user._id;
 
     // Build update object (only include provided fields)
     const updateFields = {};
     if (name) updateFields.name = name;
     if (phoneNumber) updateFields.phoneNumber = phoneNumber;
+    if (address) updateFields.address = address;
 
     if (Object.keys(updateFields).length === 0) {
       return res.status(400).json({
