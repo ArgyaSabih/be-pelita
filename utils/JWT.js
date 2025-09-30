@@ -21,3 +21,14 @@ exports.generateAuthToken = (userId) => {
 
   return token;
 };
+
+// Token sementara untuk menyelesaikan registrasi Google
+exports.generateTempToken = (googleProfile) => {
+  const payload = {
+    googleId: googleProfile.id,
+    email: googleProfile.emails[0].value,
+    name: googleProfile.displayName,
+  };
+
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10m' });
+};

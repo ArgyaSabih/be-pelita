@@ -12,10 +12,13 @@ const userSchema = new mongoose.Schema(
     },
     password: { 
       type: String, 
-      required: true,
+      required: function() {
+        return !this.googleId;
+      },
       minlength: [6, 'Password must be at least 6 characters'],
       select: false 
     },
+    googleId: { type: String },
     phoneNumber: { type: String },
     address: { type: String },
     role: {type: String, enum: ["ortu", "admin"], default: "ortu"},
