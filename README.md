@@ -1,42 +1,67 @@
-## Getiing Started
+# PELITA: Platform Edukasi dan Layanan Informasi Taman Kanak-kanak
+Platform pengawasan kegiatan anak TK dan jembatan komunikasi antara orang tua dengan sekolah berbasis web
+  
+## Kelompok 15 (PELITA)
+1. Argya Sabih Elysio - 23/512630/TK/56335
+2. Christian Kevin Andhika Dandaiva - 23/513576/TK/56433
+3. Lisa Olivia Putri Maharani - 23/519241/TK/57250
+4. Pradana Yahya Abdillah - 23/515259/TK/56625
+5. Muhammad Hafidz Al Farisi - 23/519650/TK/57256
 
-First, run the server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Struktur Folder dan File
+```
+be-pelita/
+├── 📁 config/               # Konfigurasi aplikasi
+│   ├── connectDBConfig.js     # Konfigurasi koneksi MongoDB
+│   └── passport.js            # Konfigurasi Google OAuth Strategy
+│
+├── 📁 controllers/                 # Logic bisnis aplikasi
+│   ├── AnnouncementController.js     # Controller pengumuman
+│   ├── FeedbackController.js         # Controller feedback
+│   ├── PermissionLetterController.js # Controller surat izin
+│   ├── ScheduleController.js         # Controller jadwal
+│   └── UserController.js             # Controller user & autentikasi
+│
+├── 📁 middlewares/          # Middleware kustom
+│   └── Auth.js                # Middleware autentikasi JWT
+│
+├── 📁 models/               # Schema dan model database
+│   ├── Announcement.js        # Model pengumuman
+│   ├── Child.js               # Model data anak
+│   ├── Feedback.js            # Model feedback
+│   ├── PermissionLetter.js    # Model surat izin
+│   ├── Schedule.js            # Model jadwal
+│   └── User.js                # Model pengguna
+│
+├── 📁 routes/                  # Definisi routing API
+│   ├── AnnouncementRoutes.js     # Routes pengumuman
+│   ├── AuthRoutes.js             # Routes autentikasi Google OAuth
+│   ├── FeedbackRoutes.js         # Routes feedback
+│   ├── PermissionLetterRoutes.js # Routes surat izin
+│   ├── ScheduleRoutes.js         # Routes jadwal
+│   └── UserRoutes.js             # Routes pengguna
+│
+├── 📁 utils/                 # Utility functions
+│   └── JWT.js                  # Helper untuk JWT operations
+│
+├── 📄 index.js                # Entry point aplikasi
+├── 📄 package.json            # Dependencies dan scripts
+└── 📄 .gitignore              # Git ignore rules
 ```
 
-note: if you haven't installed the dependencies, install them first ("yarn" or "npm i")
+## Tech Stack
 
-## Pull & Push Schema
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB dengan Mongoose ODM
+- **Authentication**: JWT + Passport.js (for Google OAuth 2.0)
+- **Password Hashing**: bcryptjs
 
-1. Checkout to develop branch
-2. Pull origin develop
-3. Create a new branch
-4. Checkout to the new branch
-5. Code
-6. Commit (Please follow the commit messages rule)
-7. Pull origin develop
-8. Push origin "your branch name"
-9. Create a new pull request to develop branch
-10. Done
+#### **Development Tools**
+- **Package Manager**: Yarn
+- **Development Server**: Nodemon
+- **Environment Management**: dotenv
+- **API Testing**: Postman
 
-## Commit message
-
-`<type>(<scope>): <short_summary>`
-
-- `<type>` :
-  - feat: saya menambahkan fitur baru
-  - fix: saya memperbaiki fitur
-
-Contoh: feat: add admin middleware
-
-## NOTES!!!
-
-- Jangan lupa buat pull origin main SEBELUM mulai ngoding dan SEBELUM commit/push
+## Google Drive URL
+https://drive.google.com/drive/folders/1nfgsRv8AN8AGNuo30J47-5nqW_Epkkpl?usp=sharing 
