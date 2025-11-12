@@ -3,7 +3,7 @@ const Schedule = require("../models/Schedule");
 // POST new schedule
 const createSchedule = async (req, res) => {
   try {
-    const {day, activity} = req.body;
+    const {day, date, activity} = req.body;
 
     if (!day) {
       return res.status(400).json({message: "Field 'day' is required."});
@@ -12,7 +12,11 @@ const createSchedule = async (req, res) => {
     const dayMap = {
       senin: "Senin",
       selasa: "Selasa",
-      rabu: "Rabu"
+      rabu: "Rabu",
+      kamis: "Kamis",
+      jumat: "Jumat",
+      sabtu: "Sabtu",
+      minggu: "Minggu"
     };
 
     const dayKey = String(day).trim().toLowerCase();
@@ -22,6 +26,12 @@ const createSchedule = async (req, res) => {
         .status(400)
         .json({message: `Field 'day' must be one of: ${Object.values(dayMap).join(", ")}.`});
     }
+
+    if (!date) {
+      return res.status(400).json({message: "Field 'date' is required."});
+    }
+
+    const dateObj = String(date).trim();
 
     if (!Array.isArray(activity) || activity.length === 0) {
       return res.status(400).json({message: "Field 'activity' must be a non-empty array."});
@@ -66,7 +76,7 @@ const createSchedule = async (req, res) => {
       teacher: String(a.teacher).trim()
     }));
 
-    const schedule = new Schedule({day: canonicalDay, activity: normalizedActivity});
+    const schedule = new Schedule({day: canonicalDay, date: dateObj, activity: normalizedActivity});
     await schedule.save();
 
     return res.status(201).json({message: "Schedule created.", data: schedule});
@@ -91,7 +101,7 @@ const getAllSchedules = async (req, res) => {
 const updateSchedule = async (req, res) => {
   try {
     const {id} = req.params;
-    const {day, activity} = req.body;
+    const {day, date, activity} = req.body;
 
     const update = {};
 
@@ -99,7 +109,11 @@ const updateSchedule = async (req, res) => {
       const dayMap = {
         senin: "Senin",
         selasa: "Selasa",
-        rabu: "Rabu"
+        rabu: "Rabu",
+        kamis: "Kamis",
+        jumat: "Jumat",
+        sabtu: "Sabtu",
+        minggu: "Minggu"
       };
       const dayKey = String(day).trim().toLowerCase();
       const canonicalDay = dayMap[dayKey];
@@ -109,6 +123,11 @@ const updateSchedule = async (req, res) => {
           .json({message: `Field 'day' must be one of: ${Object.values(dayMap).join(", ")}.`});
       }
       update.day = canonicalDay;
+    }
+
+    if (date !== undefined) {
+      const dateObj = String(date).trim();
+      update.date = dateObj;
     }
 
     if (activity !== undefined) {
