@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const scheduleSchema = new mongoose.Schema(
   {
-    day: {type: String, enum: ["Senin", "Selasa", "Rabu"], required: true},
+    day: {type: String, required: true},
+    date: {type: String, required: true},
     activity: [
       {
         time: {type: String, required: true},
