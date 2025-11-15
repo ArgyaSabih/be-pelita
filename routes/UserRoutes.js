@@ -2,6 +2,7 @@ const express = require("express");
 const {
   register,
   login,
+  completeProfile,
   getProfile,
   updateProfile
 } = require("../controllers/UserController");
@@ -18,6 +19,11 @@ router.post("/register", register);
 // @desc    Login user
 // @access  Public
 router.post("/login", login);
+
+// @route   PUT /api/users/complete-profile
+// @desc    Complete user profile
+// @access  Private
+router.put("/complete-profile", authenticate, completeProfile);
 
 // @route   GET /api/users/profile
 // @desc    Get user profile
