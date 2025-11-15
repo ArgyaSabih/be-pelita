@@ -8,72 +8,54 @@ const { generateTempToken, generateAuthToken } = require('../utils/JWT');
 // @route   POST /api/users/register
 // @access  Public
 const register = async (req, res) => {
-  const session = await mongoose.startSession();
-  
   try {
-    session.startTransaction();
-    const { name, email, password, phoneNumber, address, childCode } = req.body;
+    const { email, password } = req.body;
 
-    if (!childCode) {
-      return res.status(400).json({ success: false, message: "Kode belum dimasukkan" });
-    }
-    const child = await Child.findOne({ invitationCode: childCode }).session(session);
-
-    if (!child) {
-        return res.status(400).json({ success: false, message: "Kode anak tidak valid" });
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email dan Password wajib diisi"
+      });
     }
 
-    const user = new User({ name, email, password, phoneNumber, address });
-    
-    user.children.push(child._id); 
-    child.parents.push(user._id);
+    let existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.name && existingUser.children.length > 0) {
+      return res.status(400).json({ success: false, message: "Email sudah terdaftar. Silakan login." });
+    }
 
-    await user.save({ session });
-    await child.save({ session });
-
-    await session.commitTransaction();
+    let user;
+    if (existingUser) {
+      existingUser.password = password;
+      user = await existingUser.save();
+    } else {
+      user = new User({
+        email,
+        password,
+      });
+      await user.save();
+    }
 
     const token = generateAuthToken(user._id);
     
-    const userResponse = user.toJSON();
-    userResponse.children = [child.toJSON()];
-    
     res.status(201).json({
       success: true,
-      message: "User berhasil didaftarkan dan terhubung dengan anak",
+      message: "Akun berhasil dibuat. Silakan lengkapi profil Anda.",
       data: { 
-        user: userResponse, 
+        user: user.toJSON(),
         token 
       }
     });
 
   } catch (error) {
-    await session.abortTransaction();
-    
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: "Data tidak valid",
-        errors
-      });
+      return res.status(400).json({ success: false, message: "Data tidak valid", errors });
     }
-    
     if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Email sudah terdaftar"
-      });
+      return res.status(400).json({ success: false, message: "Email sudah terdaftar" });
     }
-    
     console.error('Registration error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Terjadi kesalahan server", 
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  } finally {
-    session.endSession();
+    res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
   }
 };
 
@@ -85,88 +67,152 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email dan password harus diisi"
-      });
+      return res.status(400).json({ success: false, message: "Email dan password harus diisi" });
     }
 
     const user = await User.findOne({ email }).select('+password');
     
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Email atau password salah"
-      });
+      return res.status(401).json({ success: false, message: "Email atau password salah" });
     }
 
     const isPasswordValid = await user.matchPassword(password);
     if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Email atau password salah" });
+    }
+
+    // Periksa apakah akun sudah dihubungkan ke data anak
+    if (!user.name || !user.phoneNumber || !user.address || user.children.length === 0) {
+      const token = generateAuthToken(user._id);
       return res.status(401).json({
         success: false,
-        message: "Email atau password salah"
+        message: "Silakan lengkapi profil Anda terlebih dahulu.",
+        code: "PROFILE_INCOMPLETE",
+        data: { token }
       });
     }
 
     const token = generateAuthToken(user._id);
+    const userWithChildren = await User.findById(user._id).populate('children');
 
     res.status(200).json({
       success: true,
       message: "Login berhasil",
       data: {
-        user: user.toJSON(),
+        user: userWithChildren.toJSON(),
         token
       }
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Terjadi kesalahan server",
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
   }
 };
 
-// Controller untuk /google/callback
+// @desc    Register Step 2: Complete profile (Name, Phone, Address, Child)
+// @route   PUT /api/users/complete-profile
+// @access  Private (Needs auth token from step 1)
+const completeProfile = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { name, phoneNumber, address, childCode } = req.body;
+    const userId = req.user._id;
+
+    if (!name || !phoneNumber || !address || !childCode) {
+      return res.status(400).json({ success: false, message: "Nama, No. HP, Alamat, dan Kode Anak wajib diisi" });
+    }
+
+    const child = await Child.findOne({ invitationCode: childCode }).session(session);
+    if (!child) {
+      return res.status(400).json({ success: false, message: "Kode anak tidak valid" });
+    }
+
+    const user = await User.findById(userId).session(session);
+    if (user.children.includes(child._id)) {
+      return res.status(400).json({ success: false, message: "Anak ini sudah terhubung dengan akun Anda." });
+    }
+
+    user.name = name;
+    user.phoneNumber = phoneNumber;
+    user.address = address;
+    
+    user.children.push(child._id); 
+    child.parents.push(user._id);
+
+    await user.save({ session });
+    await child.save({ session });
+
+    await session.commitTransaction();
+    
+    const updatedUser = await User.findById(userId).populate('children');
+
+    res.status(200).json({
+      success: true,
+      message: "Profil berhasil dilengkapi dan anak berhasil dihubungkan.",
+      data: {
+        user: updatedUser.toJSON()
+      }
+    });
+
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Complete profile error:', error);
+    res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
+  } finally {
+    session.endSession();
+  }
+};
+
+// @desc    Google login callback
+// @route   GET /api/auth/google/callback
 const googleCallback = async (req, res) => {
   const userOrProfile = req.user;
 
-  // Check existing profile
   if (userOrProfile._id) {
-    // Existing user: log in directly
-    const token = generateAuthToken(userOrProfile._id);
-    return res.redirect(`http://localhost:3000/dashboard?token=${token}`);
+    const user = userOrProfile;
+    const token = generateAuthToken(user._id);
+    
+    // Cek apakah profil lengkap
+    if (user.name && user.children && user.children.length > 0) {
+      return res.redirect(`http://localhost:3000/?token=${token}`);
+    } else {
+      return res.redirect(`http://localhost:3000/register/complete?token=${token}`);
+    }
   } else {
-    // New user: create temporary token and redirect to data completion page
     const tempToken = generateTempToken(userOrProfile);
-    return res.redirect(`http://localhost:3000/register/complete?token=${tempToken}`);
+    return res.redirect(`http://localhost:3000/register/complete?tempToken=${tempToken}`);
   }
 };
 
-// Controller untuk /google/registration
+// @desc    Complete Google registration (Step 2/3)
+// @route   POST /api/auth/google/registration
 const googleRegistration = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { tempToken, childCode } = req.body;
+    const { tempToken, name, phoneNumber, address, childCode } = req.body;
 
-    if (!tempToken || !childCode) {
-      return res.status(400).json({ message: 'Token sementara dan kode anak wajib diisi' });
+    if (!tempToken || !name || !phoneNumber || !address || !childCode) {
+      return res.status(400).json({ message: 'Semua data wajib diisi' });
     }
 
     const googleProfile = jwt.verify(tempToken, process.env.JWT_SECRET);
     
     const child = await Child.findOne({ invitationCode: childCode }).session(session);
     if (!child) {
+      await session.abortTransaction();
       return res.status(400).json({ success: false, message: "Kode anak tidak valid" });
     }
 
     const newUser = new User({
-      name: googleProfile.name,
+      name: name,
       email: googleProfile.email,
       googleId: googleProfile.googleId,
+      phoneNumber: phoneNumber,
+      address: address
     });
     
     newUser.children.push(child._id);
@@ -177,7 +223,6 @@ const googleRegistration = async (req, res) => {
 
     await session.commitTransaction();
 
-    // Create actual authentication token
     const finalToken = generateAuthToken(newUser._id);
     res.status(201).json({
       success: true,
@@ -189,34 +234,13 @@ const googleRegistration = async (req, res) => {
     await session.abortTransaction();
     
     if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Token sementara tidak valid atau kedaluwarsa' 
-      });
+      return res.status(401).json({ success: false, message: 'Token sementara tidak valid atau kedaluwarsa' });
     }
-    
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: "Data tidak valid",
-        errors
-      });
-    }
-    
     if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Email sudah terdaftar"
-      });
+      return res.status(400).json({ success: false, message: "Email sudah terdaftar" });
     }
-    
     console.error('Google registration error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Terjadi kesalahan server', 
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
   } finally {
     session.endSession();
   }
@@ -316,6 +340,7 @@ const updateProfile = async (req, res) => {
 module.exports = {
   register,
   login,
+  completeProfile,
   googleCallback,
   googleRegistration,
   getProfile,
