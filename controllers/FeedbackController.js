@@ -30,6 +30,26 @@ const getAllFeedbacks = async (req, res) => {
   }
 };
 
+// GET Feedback by Parent ID (semua login user bisa lihat)
+const getFeedbacksByParent = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+
+    const feedbacks = await Feedback.find({ parent: parentId })
+      .populate("parent", "name email");
+
+    res.status(200).json({
+      success: true,
+      data: feedbacks,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // GET Feedback by ID (semua login user bisa lihat)
 const getFeedbackById = async (req, res) => {
   try {
@@ -170,6 +190,7 @@ const deleteFeedback = async (req, res) => {
 module.exports = {
   getAllFeedbacks,
   getFeedbackById,
+  getFeedbacksByParent,
   createFeedback,
   updateFeedback,
   deleteFeedback,
