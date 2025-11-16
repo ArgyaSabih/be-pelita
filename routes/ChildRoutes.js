@@ -5,7 +5,8 @@ const {
   getAllChildren,
   getChildById,
   updateChild,
-  deleteChild
+  deleteChild,
+  updateChildProfile
 } = require("../controllers/ChildController");
 const {authenticate} = require("../middlewares/Auth");
 
@@ -23,6 +24,9 @@ router.put("/:id", authenticate, updateChild);
 
 // DELETE child by id
 router.delete("/:id", authenticate, deleteChild);
+
+// PUT by id for parents
+router.put("/:id", authenticate, updateChildProfile);
 
 module.exports = router;
 
