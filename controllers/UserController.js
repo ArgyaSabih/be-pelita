@@ -252,10 +252,7 @@ const googleRegistration = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     let user = req.user;
-
-    if (user.children && user.children.length > 0 && typeof user.children[0] === 'string') {
-      user = await user.populate('children');
-    }
+    user = await user.populate('children');
 
     res.status(200).json({
       success: true,
@@ -282,7 +279,6 @@ const updateProfile = async (req, res) => {
     const { name, phoneNumber, address } = req.body;
     const userId = req.user._id;
 
-    // Build update object (only include provided fields)
     const updateFields = {};
     if (name) updateFields.name = name;
     if (phoneNumber) updateFields.phoneNumber = phoneNumber;
@@ -299,8 +295,8 @@ const updateProfile = async (req, res) => {
       userId,
       updateFields,
       {
-        new: true, // Return updated document
-        runValidators: true // Run schema validations
+        new: true,
+        runValidators: true
       }
     );
 

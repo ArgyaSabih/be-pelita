@@ -177,11 +177,57 @@ const deleteChild = async (req, res) => {
   }
 };
 
+// @desc    Update data anak (Medical Record & Notes OLEH ORANG TUA)
+// @route   PUT /api/children/:id
+// @access  Private (Hanya orang tua yang terhubung)
+const updateChildProfile = async (req, res) => {
+  try {
+    const { medicalRecord, notes } = req.body;
+    const childId = req.params.id;
+    const parentId = req.user._id;
+
+    const child = await Child.findById(childId);
+    if (!child) {
+      return res.status(404).json({ success: false, message: "Data anak tidak ditemukan" });
+    }
+
+    const isParent = child.parents.some(id => id.equals(parentId));
+    
+    if (!isParent && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: "Anda tidak memiliki izin untuk mengedit data anak ini" });
+    }
+
+    if (medicalRecord !== undefined) {
+      if (Array.isArray(medicalRecord)) {
+        child.medicalRecord = medicalRecord.filter(Boolean);
+      } else if (typeof medicalRecord === 'string') {
+        child.medicalRecord = [medicalRecord].filter(Boolean);
+      }
+    }
+    if (notes !== undefined) {
+      child.notes = notes;
+    }
+
+    await child.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Data anak berhasil diperbarui",
+      data: child,
+    });
+
+  } catch (error) {
+    console.error("Update Child Profile Error:", error);
+    res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
+  }
+};
+
 module.exports = {
   createChild,
   getAllChildren,
   getChildById,
   updateChild,
-  deleteChild
+  deleteChild,
+  updateChildProfile
 };
 
