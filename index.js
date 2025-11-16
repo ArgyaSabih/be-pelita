@@ -33,6 +33,7 @@ app.use("/api/users", require("./routes/UserRoutes"));
 app.use("/api/announcements", require("./routes/AnnouncementRoutes"));
 app.use("/api/feedbacks", require("./routes/FeedbackRoutes"));
 app.use("/api/permission-letters", require("./routes/PermissionLetterRoutes"));
+app.use("/api/children", require("./routes/ChildRoutes"));
 app.use("/api/auth", require("./routes/AuthRoutes"));
 
 // Server run
