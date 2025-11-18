@@ -176,13 +176,13 @@ const googleCallback = async (req, res) => {
     
     // Cek apakah profil lengkap
     if (user.name && user.children && user.children.length > 0) {
-      return res.redirect(`http://localhost:3000/?token=${token}`);
+      return res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`);
     } else {
-      return res.redirect(`http://localhost:3000/register/complete?token=${token}`);
+      return res.redirect(`${process.env.FRONTEND_URL}/register/complete?token=${token}`);
     }
   } else {
     const tempToken = generateTempToken(userOrProfile);
-    return res.redirect(`http://localhost:3000/register/complete?tempToken=${tempToken}`);
+    return res.redirect(`${process.env.FRONTEND_URL}/register/complete?tempToken=${tempToken}`);
   }
 };
 
