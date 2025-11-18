@@ -7,8 +7,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "vitest",
-    "vercel-build": "echo hello world"
+    "test": "vitest"
+  },
+  "engines": {
+    "node": ">=18.x"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

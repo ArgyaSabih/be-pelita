@@ -1,15 +1,15 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const passport = require('passport');
-require('./config/passport')(passport);
+const passport = require("passport");
+require("./config/passport")(passport);
 const connectDB = require("./config/connectDBConfig");
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true
   })
 );
