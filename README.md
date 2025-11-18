@@ -1,4 +1,4 @@
-# PELITA: Platform Edukasi dan Layanan Informasi Taman Kanak-kanak
+# PELITA: Pendamping Teliti Anak TK
 Platform pengawasan kegiatan anak TK dan jembatan komunikasi antara orang tua dengan sekolah berbasis web
   
 ## Kelompok 15 (PELITA)
