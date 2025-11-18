@@ -2,6 +2,12 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
 
 module.exports = function(passport) {
+  // Skip Google OAuth if credentials not provided
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.warn('⚠️  Google OAuth credentials not found. Google login will be disabled.');
+    return;
+  }
+
   passport.use(
     new GoogleStrategy(
       {

@@ -5,18 +5,42 @@ const { googleCallback, googleRegistration } = require('../controllers/UserContr
 
 const router = express.Router();
 
-// @desc    Authenticate Google
-// @route   GET /api/auth/google
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+// Check if Google OAuth is configured
+const isGoogleOAuthEnabled = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
-// @desc    Google login callback
-// @route   GET /api/auth/google/callback
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:3000/login'}),
-  googleCallback
-);
+if (isGoogleOAuthEnabled) {
+  // @desc    Authenticate Google
+  // @route   GET /api/auth/google
+  router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.post('/google/registration', googleRegistration);
+  // @desc    Google login callback
+  // @route   GET /api/auth/google/callback
+  router.get(
+    '/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:3000/login'}),
+    googleCallback
+  );
+
+  router.post('/google/registration', googleRegistration);
+} else {
+  // Fallback routes when Google OAuth is not configured
+  router.get('/google', (req, res) => {
+    res.status(503).json({ 
+      message: 'Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
+    });
+  });
+
+  router.get('/google/callback', (req, res) => {
+    res.status(503).json({ 
+      message: 'Google OAuth is not configured.' 
+    });
+  });
+
+  router.post('/google/registration', (req, res) => {
+    res.status(503).json({ 
+      message: 'Google OAuth is not configured.' 
+    });
+  });
+}
 
 module.exports = router;
