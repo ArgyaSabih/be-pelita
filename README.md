@@ -10,43 +10,42 @@ Platform pengawasan kegiatan anak TK dan jembatan komunikasi antara orang tua de
 
 ## Struktur Folder dan File
 ```
-be-pelita/
-├── 📁 config/               # Konfigurasi aplikasi
-│   ├── connectDBConfig.js     # Konfigurasi koneksi MongoDB
-│   └── passport.js            # Konfigurasi Google OAuth Strategy
-│
-├── 📁 controllers/                 # Logic bisnis aplikasi
-│   ├── AnnouncementController.js     # Controller pengumuman
-│   ├── FeedbackController.js         # Controller feedback
-│   ├── PermissionLetterController.js # Controller surat izin
-│   ├── ScheduleController.js         # Controller jadwal
-│   └── UserController.js             # Controller user & autentikasi
-│
-├── 📁 middlewares/          # Middleware kustom
-│   └── Auth.js                # Middleware autentikasi JWT
-│
-├── 📁 models/               # Schema dan model database
-│   ├── Announcement.js        # Model pengumuman
-│   ├── Child.js               # Model data anak
-│   ├── Feedback.js            # Model feedback
-│   ├── PermissionLetter.js    # Model surat izin
-│   ├── Schedule.js            # Model jadwal
-│   └── User.js                # Model pengguna
-│
-├── 📁 routes/                  # Definisi routing API
-│   ├── AnnouncementRoutes.js     # Routes pengumuman
-│   ├── AuthRoutes.js             # Routes autentikasi Google OAuth
-│   ├── FeedbackRoutes.js         # Routes feedback
-│   ├── PermissionLetterRoutes.js # Routes surat izin
-│   ├── ScheduleRoutes.js         # Routes jadwal
-│   └── UserRoutes.js             # Routes pengguna
-│
-├── 📁 utils/                 # Utility functions
-│   └── JWT.js                  # Helper untuk JWT operations
-│
-├── 📄 index.js                # Entry point aplikasi
-├── 📄 package.json            # Dependencies dan scripts
-└── 📄 .gitignore              # Git ignore rules
+Directory structure:
+└── argyasabih-be-pelita/
+    ├── README.md
+    ├── index.js
+    ├── package.json
+    ├── railway.json
+    ├── .env.example
+    ├── config/
+    │   ├── connectDBConfig.js
+    │   └── passport.js
+    ├── controllers/
+    │   ├── AnnouncementController.js
+    │   ├── ChildController.js
+    │   ├── FeedbackController.js
+    │   ├── PermissionLetterController.js
+    │   ├── ScheduleController.js
+    │   └── UserController.js
+    ├── middlewares/
+    │   └── Auth.js
+    ├── models/
+    │   ├── Announcement.js
+    │   ├── Child.js
+    │   ├── Feedback.js
+    │   ├── PermissionLetter.js
+    │   ├── Schedule.js
+    │   └── User.js
+    ├── routes/
+    │   ├── AnnouncementRoutes.js
+    │   ├── AuthRoutes.js
+    │   ├── ChildRoutes.js
+    │   ├── FeedbackRoutes.js
+    │   ├── PermissionLetterRoutes.js
+    │   ├── ScheduleRoutes.js
+    │   └── UserRoutes.js
+    └── utils/
+        └── JWT.js
 ```
 
 ## Tech Stack
@@ -65,3 +64,6 @@ be-pelita/
 
 ## Google Drive URL
 https://drive.google.com/drive/folders/1nfgsRv8AN8AGNuo30J47-5nqW_Epkkpl
+
+## Deployed Website URL
+https://fe-pelita-production.up.railway.app/
