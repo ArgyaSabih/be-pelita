@@ -66,4 +66,4 @@ Directory structure:
 https://drive.google.com/drive/folders/1nfgsRv8AN8AGNuo30J47-5nqW_Epkkpl
 
 ## Deployed Website URL
-https://fe-pelita-production.up.railway.app/
+https://fe-pelita-production.up.railway.app
